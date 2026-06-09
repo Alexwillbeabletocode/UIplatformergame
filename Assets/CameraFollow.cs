@@ -1,10 +1,5 @@
 using UnityEngine;
 
-// Attach to your Main Camera.
-// Platformer mode: follows the player.
-// Cursor mode: follows the cursor freely, but is clamped so the
-// player never leaves the viewport. Bounces when it hits that limit.
-
 public class CameraFollow : MonoBehaviour
 {
     [Header("Targets")]
@@ -15,12 +10,13 @@ public class CameraFollow : MonoBehaviour
     public float smoothTime = 0.2f;
     public Vector2 playerOffset = Vector2.zero;
 
-    [Header("Cursor Mode — Player Visibility")]
-    public float playerMargin = 1f;     // How close to the edge the player is allowed to get (world units)
-
-    [Header("Cursor Mode — Boundary Bounce")]
-    public float bounceScale = 0.3f;        // Strength of the bounce visual
-    public float bounceSettleTime = 0.1f;   // How fast the bounce springs back
+    [Header("Cursor Mode")]
+    [Range(0f, 0.8f)]
+    public float cursorDeadZone = 0.3f;
+    public float cursorFollowSpeed = 4f;
+    public float playerMargin = 1f;
+    public float hoverStopMultiplier = 0.1f;
+    public LayerMask interactableLayers;
 
     [Header("Bounds (optional)")]
     public bool useBounds = false;
@@ -28,8 +24,6 @@ public class CameraFollow : MonoBehaviour
     public Vector2 maxBounds;
 
     private Vector3 velocity = Vector3.zero;
-    private Vector3 bounceOffset = Vector3.zero;
-    private Vector3 bounceVelocity = Vector3.zero;
     private Camera cam;
 
     void Awake()
@@ -42,71 +36,73 @@ public class CameraFollow : MonoBehaviour
         if (playerTarget == null) return;
 
         bool inCursorMode = cursorController != null && cursorController.isCursorMode;
-
         Vector3 desiredPos;
 
         if (inCursorMode)
         {
-            // Start by following the cursor directly
+            Vector3 playerCenter = playerTarget.position + (Vector3)playerOffset;
+            Vector3 cursorPos = cursorController.transform.position;
+            Vector3 offset = cursorPos - playerCenter;
+
+            float halfH = cam.orthographicSize;
+            float halfW = halfH * cam.aspect;
+            Vector2 normalized = new Vector2(
+                Mathf.Abs(offset.x) / halfW,
+                Mathf.Abs(offset.y) / halfH
+            );
+
+            float maxNorm = Mathf.Max(normalized.x, normalized.y);
+            Vector3 targetOffset = Vector3.zero;
+
+            if (maxNorm > cursorDeadZone)
+            {
+                float excess = maxNorm - cursorDeadZone;
+                float scale = excess / (1f - cursorDeadZone);
+                targetOffset = offset * scale;
+            }
+
+            float clampH = halfH - playerMargin;
+            float clampW = halfW - playerMargin;
+            targetOffset.x = Mathf.Clamp(targetOffset.x, -clampW, clampW);
+            targetOffset.y = Mathf.Clamp(targetOffset.y, -clampH, clampH);
+
             desiredPos = new Vector3(
-                cursorController.transform.position.x,
-                cursorController.transform.position.y,
+                playerCenter.x + targetOffset.x,
+                playerCenter.y + targetOffset.y,
                 transform.position.z
             );
 
-            // --- Clamp camera so player stays in viewport ---
-            float halfH = cam.orthographicSize - playerMargin;
-            float halfW = halfH * cam.aspect - playerMargin;
+            // Slow camera when hovering an interactable
+            float speed = cursorFollowSpeed;
+            if (interactableLayers.value != 0)
+            {
+                RaycastHit2D hit = Physics2D.Raycast(cursorPos, Vector2.zero, 0f, interactableLayers);
+                if (hit.collider != null)
+                    speed *= hoverStopMultiplier;
+            }
 
-            float minX = playerTarget.position.x - halfW;
-            float maxX = playerTarget.position.x + halfW;
-            float minY = playerTarget.position.y - halfH;
-            float maxY = playerTarget.position.y + halfH;
-
-            Vector3 clampedPos = new Vector3(
-                Mathf.Clamp(desiredPos.x, minX, maxX),
-                Mathf.Clamp(desiredPos.y, minY, maxY),
-                transform.position.z
+            transform.position = Vector3.Lerp(
+                transform.position, desiredPos, speed * Time.deltaTime
             );
-
-            // How far the cursor is pushing the camera past its allowed range
-            Vector3 excess = desiredPos - clampedPos;
-
-            // Bounce: camera squishes inward when held at the limit, springs back when cursor retreats
-            Vector3 bounceTarget = excess.magnitude > 0.05f
-                ? -Vector3.ClampMagnitude(excess, Mathf.Min(halfW, halfH) * bounceScale)
-                : Vector3.zero;
-
-            bounceOffset = Vector3.SmoothDamp(
-                bounceOffset, bounceTarget, ref bounceVelocity, bounceSettleTime
-            );
-
-            desiredPos = clampedPos + bounceOffset;
         }
         else
         {
-            // Platformer mode — standard player follow, no bounce
-            bounceOffset = Vector3.zero;
-            bounceVelocity = Vector3.zero;
-
             desiredPos = new Vector3(
                 playerTarget.position.x + playerOffset.x,
                 playerTarget.position.y + playerOffset.y,
                 transform.position.z
             );
+
+            if (useBounds)
+            {
+                desiredPos.x = Mathf.Clamp(desiredPos.x, minBounds.x, maxBounds.x);
+                desiredPos.y = Mathf.Clamp(desiredPos.y, minBounds.y, maxBounds.y);
+            }
+
+            transform.position = Vector3.SmoothDamp(
+                transform.position, desiredPos, ref velocity, smoothTime
+            );
         }
-
-        desiredPos.z = transform.position.z;
-
-        if (useBounds)
-        {
-            desiredPos.x = Mathf.Clamp(desiredPos.x, minBounds.x, maxBounds.x);
-            desiredPos.y = Mathf.Clamp(desiredPos.y, minBounds.y, maxBounds.y);
-        }
-
-        transform.position = Vector3.SmoothDamp(
-            transform.position, desiredPos, ref velocity, smoothTime
-        );
     }
 
     public void SnapToTarget()
@@ -118,7 +114,5 @@ public class CameraFollow : MonoBehaviour
             transform.position.z
         );
         velocity = Vector3.zero;
-        bounceOffset = Vector3.zero;
-        bounceVelocity = Vector3.zero;
     }
 }
