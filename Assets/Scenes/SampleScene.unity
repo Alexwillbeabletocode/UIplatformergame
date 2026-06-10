@@ -904,7 +904,13 @@ MonoBehaviour:
   stickerLayer:
     serializedVersion: 2
     m_Bits: 256
-  cursorCatchRadius: 0.5
+  catchRadius: 3
+  windupDuration: 0.15
+  lungeSpeed: 8
+  lungeMaxDistance: 15
+  catchCooldown: 2
+  stunDuration: 1.5
+  stunRecoilForce: 5
   glitchDuration: 1.5
   alertColor: {r: 1, g: 0, b: 0, a: 1}
   pulseSpeed: 4
@@ -1449,7 +1455,7 @@ MonoBehaviour:
   stickerPrefab: {fileID: 7211168867102198194, guid: 3ecf360e481a1a54993b0c6effc4bac7, type: 3}
   maxStickers: 3
   stickerLifetime: 3
-  placementCooldown: 2
+  placementCooldown: 1
 --- !u!114 &1534682742 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 329677624135143938, guid: 47e5f49c14448f54d9048321f9820187, type: 3}

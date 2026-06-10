@@ -24,9 +24,10 @@ public class PopUpChaser : MonoBehaviour
     public LayerMask stickerLayer;
 
     [Header("Cursor Catch")]
+    public float agroRange = 2.5f;
     public float catchRadius = 0.8f;
     public float windupDuration = 0.15f;
-    public float lungeSpeed = 8f;
+    public float lungeSpeed = 10f;
     public float lungeMaxDistance = 3f;
     public float catchCooldown = 2f;
     public float stunDuration = 1.5f;
@@ -107,18 +108,19 @@ public class PopUpChaser : MonoBehaviour
         if (isLunging)
         {
             lungeTimer -= Time.deltaTime;
+            float distToTarget = Vector2.Distance(transform.position, lungeTarget);
 
-            // Check if reached target
-            float cursorDist = Vector2.Distance(transform.position, cursorController.transform.position);
-            if (cursorDist < catchRadius)
+            if (distToTarget < catchRadius)
             {
-                DoCatch();
-                return;
+                // Arrived — check if cursor is still close enough to catch
+                float cursorDist = Vector2.Distance(transform.position, cursorController.transform.position);
+                if (cursorDist < catchRadius * 1.5f)
+                    DoCatch();
+                else
+                    CancelLunge();
             }
 
-            // Abort if timer runs out or cursor moved too far
-            Vector2 dirToCursor = cursorController.transform.position - lungeTarget;
-            if (lungeTimer <= 0f || dirToCursor.magnitude > lungeMaxDistance)
+            if (lungeTimer <= 0f)
                 CancelLunge();
 
             return;
@@ -138,11 +140,11 @@ public class PopUpChaser : MonoBehaviour
             pulseTimer = 0f;
         }
 
-        // Start windup when close to cursor
+        // Start windup when cursor is in agro range
         if (lungeCooldown <= 0f && cursorController != null && cursorController.isCursorMode)
         {
             float cursorDist = Vector2.Distance(transform.position, cursorController.transform.position);
-            if (cursorDist < catchRadius)
+            if (cursorDist < agroRange)
                 StartWindup();
         }
     }
@@ -190,12 +192,16 @@ public class PopUpChaser : MonoBehaviour
     {
         isWindingUp = false;
         isLunging = true;
-        lungeTimer = 0.5f;
 
-        Vector3 cursorPos = cursorController.transform.position;
-        Vector3 dir = (cursorPos - transform.position).normalized;
-        float maxDist = Mathf.Min(Vector2.Distance(transform.position, cursorPos), lungeMaxDistance);
-        lungeTarget = transform.position + dir * maxDist;
+        Vector3 dir = (lungeTarget - transform.position).normalized;
+        float dist = Vector2.Distance(transform.position, lungeTarget);
+        if (dist > lungeMaxDistance)
+        {
+            lungeTarget = transform.position + dir * lungeMaxDistance;
+            dist = lungeMaxDistance;
+        }
+
+        lungeTimer = dist / lungeSpeed + 0.2f;
     }
 
     void CancelLunge()
@@ -308,6 +314,8 @@ public class PopUpChaser : MonoBehaviour
     {
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(transform.position, detectionRange);
+        Gizmos.color = new Color(1f, 0.5f, 0f);
+        Gizmos.DrawWireSphere(transform.position, agroRange);
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(transform.position, catchRadius);
     }
