@@ -58,14 +58,14 @@ public class PlayerMovement : MonoBehaviour
         if (cursorController != null && cursorController.isCursorMode)
         {
             moveInput = 0f;
-            // Don't return — still need gravity to apply, just no input
+            // Don't return ï¿½ still need gravity to apply, just no input
             // Horizontal deceleration is handled in FixedUpdate
             return;
         }
 
         moveInput = Input.GetAxisRaw("Horizontal");
 
-        // Ground check — combines groundLayer with any extra layers (e.g. draggable platforms)
+        // Ground check ï¿½ combines groundLayer with any extra layers (e.g. draggable platforms)
         isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer | extraGroundLayers);
 
         // Wall checks
@@ -155,6 +155,13 @@ public class PlayerMovement : MonoBehaviour
     void Jump()
     {
         rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
+        coyoteTimeCounter = 0f;
+    }
+
+    public void Knockback(Vector2 source, float force, float upwardForce)
+    {
+        Vector2 dir = (rb.position - source).normalized;
+        rb.linearVelocity = new Vector2(dir.x * force, upwardForce);
         coyoteTimeCounter = 0f;
     }
 
