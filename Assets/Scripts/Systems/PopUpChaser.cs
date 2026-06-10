@@ -4,7 +4,7 @@ using UnityEngine;
 [RequireComponent(typeof(Collider2D))]
 public class PopUpChaser : MonoBehaviour
 {
-    enum State { Chasing, Eating }
+    enum State { Chasing, Eating, Stunned }
 
     [Header("Chase Settings")]
     public Transform playerTarget;
@@ -24,7 +24,13 @@ public class PopUpChaser : MonoBehaviour
     public LayerMask stickerLayer;
 
     [Header("Cursor Catch")]
-    public float cursorCatchRadius = 0.5f;
+    public float catchRadius = 0.8f;
+    public float windupDuration = 0.15f;
+    public float lungeSpeed = 8f;
+    public float lungeMaxDistance = 3f;
+    public float catchCooldown = 2f;
+    public float stunDuration = 1.5f;
+    public float stunRecoilForce = 5f;
     public float glitchDuration = 1.5f;
 
     [Header("Visual")]
@@ -39,6 +45,17 @@ public class PopUpChaser : MonoBehaviour
     private State state = State.Chasing;
     private float eatTimer = 0f;
     private Sticker currentSticker = null;
+
+    // Cursor lunge
+    private float lungeCooldown = 0f;
+    private float windupTimer = 0f;
+    private bool isWindingUp = false;
+    private bool isLunging = false;
+    private Vector3 lungeTarget;
+    private float lungeTimer = 0f;
+
+    // Stun
+    private float stunTimer = 0f;
 
     void Start()
     {
@@ -56,14 +73,58 @@ public class PopUpChaser : MonoBehaviour
     {
         if (playerTarget == null) return;
 
+        // Timers
+        if (lungeCooldown > 0f) lungeCooldown -= Time.deltaTime;
+
         if (state == State.Eating)
         {
             eatTimer -= Time.deltaTime;
-            if (eatTimer <= 0f)
-                FinishEating();
+            if (eatTimer <= 0f) FinishEating();
             return;
         }
 
+        if (state == State.Stunned)
+        {
+            stunTimer -= Time.deltaTime;
+            if (stunTimer <= 0f) state = State.Chasing;
+            return;
+        }
+
+        // Windup telegraph
+        if (isWindingUp)
+        {
+            windupTimer -= Time.deltaTime;
+            float flash = Mathf.PingPong(Time.time * 30f, 1f);
+            sr.color = Color.Lerp(originalColor, Color.white, flash);
+
+            if (windupTimer <= 0f)
+                StartLunge();
+
+            return;
+        }
+
+        // Lunge in progress
+        if (isLunging)
+        {
+            lungeTimer -= Time.deltaTime;
+
+            // Check if reached target
+            float cursorDist = Vector2.Distance(transform.position, cursorController.transform.position);
+            if (cursorDist < catchRadius)
+            {
+                DoCatch();
+                return;
+            }
+
+            // Abort if timer runs out or cursor moved too far
+            Vector2 dirToCursor = cursorController.transform.position - lungeTarget;
+            if (lungeTimer <= 0f || dirToCursor.magnitude > lungeMaxDistance)
+                CancelLunge();
+
+            return;
+        }
+
+        // Pulse when player is in range
         float dist = Vector2.Distance(transform.position, playerTarget.position);
         if (dist < detectionRange)
         {
@@ -77,19 +138,27 @@ public class PopUpChaser : MonoBehaviour
             pulseTimer = 0f;
         }
 
-        // Check cursor proximity
-        if (cursorController != null && cursorController.isCursorMode)
+        // Start windup when close to cursor
+        if (lungeCooldown <= 0f && cursorController != null && cursorController.isCursorMode)
         {
             float cursorDist = Vector2.Distance(transform.position, cursorController.transform.position);
-            if (cursorDist < cursorCatchRadius)
-                CatchCursor();
+            if (cursorDist < catchRadius)
+                StartWindup();
         }
     }
 
     void FixedUpdate()
     {
-        if (playerTarget == null || state == State.Eating)
+        if (playerTarget == null) return;
+        if (state == State.Eating || state == State.Stunned) return;
+        if (isWindingUp) return;
+
+        if (isLunging)
+        {
+            Vector2 dir = (lungeTarget - transform.position).normalized;
+            rb.linearVelocity = dir * lungeSpeed;
             return;
+        }
 
         Vector2 targetPos = GetTargetPosition();
         Vector2 currentPos = transform.position;
@@ -106,6 +175,52 @@ public class PopUpChaser : MonoBehaviour
         }
 
         rb.linearVelocity = velocity;
+    }
+
+    void StartWindup()
+    {
+        isWindingUp = true;
+        windupTimer = windupDuration;
+        lungeTarget = cursorController.transform.position;
+        velocity = Vector2.zero;
+        rb.linearVelocity = Vector2.zero;
+    }
+
+    void StartLunge()
+    {
+        isWindingUp = false;
+        isLunging = true;
+        lungeTimer = 0.5f;
+
+        Vector3 cursorPos = cursorController.transform.position;
+        Vector3 dir = (cursorPos - transform.position).normalized;
+        float maxDist = Mathf.Min(Vector2.Distance(transform.position, cursorPos), lungeMaxDistance);
+        lungeTarget = transform.position + dir * maxDist;
+    }
+
+    void CancelLunge()
+    {
+        isLunging = false;
+        lungeCooldown = catchCooldown * 0.3f;
+        sr.color = originalColor;
+    }
+
+    void DoCatch()
+    {
+        isLunging = false;
+        lungeCooldown = catchCooldown;
+
+        cursorController.Glitch(glitchDuration);
+        if (stickerSpawner != null) stickerSpawner.ForceCooldown();
+
+        // Recoil
+        Vector3 recoilDir = (transform.position - cursorController.transform.position).normalized;
+        velocity = (Vector2)recoilDir * stunRecoilForce;
+        rb.linearVelocity = velocity;
+
+        sr.color = originalColor;
+        state = State.Stunned;
+        stunTimer = stunDuration;
     }
 
     Vector2 GetTargetPosition()
@@ -129,20 +244,13 @@ public class PopUpChaser : MonoBehaviour
 
         Collider2D closest = null;
         float minDist = float.MaxValue;
-
         foreach (Collider2D hit in hits)
         {
             Sticker s = hit.GetComponent<Sticker>();
             if (s == null) continue;
-
             float d = Vector2.Distance(transform.position, hit.transform.position);
-            if (d < minDist)
-            {
-                minDist = d;
-                closest = hit;
-            }
+            if (d < minDist) { minDist = d; closest = hit; }
         }
-
         return closest?.GetComponent<Sticker>();
     }
 
@@ -157,25 +265,14 @@ public class PopUpChaser : MonoBehaviour
 
     void FinishEating()
     {
-        if (currentSticker != null)
-            currentSticker.DestroyByChaser();
-
+        if (currentSticker != null) currentSticker.DestroyByChaser();
         currentSticker = null;
         state = State.Chasing;
     }
 
-    void CatchCursor()
-    {
-        cursorController.Glitch(glitchDuration);
-        if (stickerSpawner != null)
-            stickerSpawner.ForceCooldown();
-    }
-
     public void Die()
     {
-        if (currentSticker != null)
-            currentSticker.DestroyByChaser();
-
+        if (currentSticker != null) currentSticker.DestroyByChaser();
         Destroy(gameObject);
     }
 
@@ -212,6 +309,6 @@ public class PopUpChaser : MonoBehaviour
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(transform.position, detectionRange);
         Gizmos.color = Color.yellow;
-        Gizmos.DrawWireSphere(transform.position, cursorCatchRadius);
+        Gizmos.DrawWireSphere(transform.position, catchRadius);
     }
 }

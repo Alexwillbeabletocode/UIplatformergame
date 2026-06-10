@@ -43,6 +43,7 @@ public class StickerSpawner : MonoBehaviour
         }
 
         activeStickers++;
+        cooldownTimer = placementCooldown;
     }
 
     public void OnStickerDestroyed()
