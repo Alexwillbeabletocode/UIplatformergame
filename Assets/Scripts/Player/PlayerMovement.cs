@@ -158,6 +158,11 @@ public class PlayerMovement : MonoBehaviour
         coyoteTimeCounter = 0f;
     }
 
+    public void Bounce()
+    {
+        rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce * 0.6f);
+    }
+
     public void Knockback(Vector2 source, float force, float upwardForce)
     {
         Vector2 dir = (rb.position - source).normalized;
