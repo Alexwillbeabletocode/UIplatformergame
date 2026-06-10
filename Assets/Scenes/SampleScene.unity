@@ -904,10 +904,11 @@ MonoBehaviour:
   stickerLayer:
     serializedVersion: 2
     m_Bits: 256
-  catchRadius: 3
+  agroRange: 2.5
+  catchRadius: 0.8
   windupDuration: 0.15
   lungeSpeed: 8
-  lungeMaxDistance: 15
+  lungeMaxDistance: 3
   catchCooldown: 2
   stunDuration: 1.5
   stunRecoilForce: 5
