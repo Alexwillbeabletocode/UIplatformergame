@@ -44,8 +44,6 @@ public class PopUpChaser : MonoBehaviour
     public float pulseSpeed = 4f;
 
     private SpriteRenderer sr;
-    private SpriteRenderer rootSr;
-    private Transform visualPivot;
     private Rigidbody2D rb;
     private Color originalColor;
     private Vector2 velocity = Vector2.zero;
@@ -80,30 +78,25 @@ public class PopUpChaser : MonoBehaviour
 
     void Start()
     {
-        rootSr = GetComponent<SpriteRenderer>();
+        sr = GetComponent<SpriteRenderer>();
         rb = GetComponent<Rigidbody2D>();
+        originalColor = sr.color;
         spawnPosition = transform.position;
 
-        // Create visual child that rotates independently (collider stays upright on root)
-        GameObject visualGO = new GameObject("Visual");
-        visualGO.transform.SetParent(transform, false);
-        visualGO.transform.localPosition = Vector3.zero;
-        SpriteRenderer visualSr = visualGO.AddComponent<SpriteRenderer>();
-        visualSr.sprite = rootSr.sprite;
-        visualSr.sortingLayerID = rootSr.sortingLayerID;
-        visualSr.sortingOrder = rootSr.sortingOrder;
-        visualSr.color = rootSr.color;
-        visualPivot = visualGO.transform;
-
-        // Use visual child for all rendering; hide root sprite
-        sr = visualSr;
-        originalColor = rootSr.color;
-        rootSr.enabled = false;
+        // Replace BoxCollider2D with CircleCollider2D so rotation doesn't affect collision shape
+        Collider2D existing = GetComponent<Collider2D>();
+        float radius = 0.5f;
+        if (existing is BoxCollider2D box)
+        {
+            radius = Mathf.Max(box.size.x, box.size.y) * 0.5f;
+            Destroy(existing);
+        }
+        CircleCollider2D circle = gameObject.AddComponent<CircleCollider2D>();
+        circle.radius = radius;
+        circle.isTrigger = true;
 
         if (playerTarget == null)
             playerTarget = FindFirstObjectByType<PlayerMovement>()?.transform;
-
-        GetComponent<Collider2D>().isTrigger = true;
     }
 
     void Update()
@@ -277,16 +270,16 @@ public class PopUpChaser : MonoBehaviour
         {
             Vector2 dir = rb.linearVelocity;
             if (dir.sqrMagnitude > 0.01f)
-                visualPivot.up = dir.normalized;
+                transform.up = dir.normalized;
         }
         else if (state == State.Aiming && playerTarget != null)
         {
             Vector2 dir = (playerTarget.position - transform.position).normalized;
-            visualPivot.up = Vector3.RotateTowards(visualPivot.up, dir, 720f * Mathf.Deg2Rad * Time.deltaTime, 0f);
+            transform.up = Vector3.RotateTowards(transform.up, dir, 720f * Mathf.Deg2Rad * Time.deltaTime, 0f);
         }
         else if (state == State.Idle)
         {
-            visualPivot.up = Vector3.RotateTowards(visualPivot.up, Vector3.up, 360f * Mathf.Deg2Rad * Time.deltaTime, 0f);
+            transform.up = Vector3.RotateTowards(transform.up, Vector3.up, 360f * Mathf.Deg2Rad * Time.deltaTime, 0f);
         }
     }
 
@@ -433,7 +426,7 @@ public class PopUpChaser : MonoBehaviour
         velocity = Vector2.zero;
         rb.linearVelocity = Vector2.zero;
         sr.color = originalColor;
-        visualPivot.up = Vector3.up;
+        transform.up = Vector3.up;
         transform.position = spawnPosition;
     }
 
