@@ -25,6 +25,8 @@ public class Sticker : MonoBehaviour
     private bool isExpanded = false;
     private float currentScale = 1f;
     private float targetScale = 1f;
+    private Sprite triangleSprite;
+    private Sprite rectangleSprite;
 
     void Start()
     {
@@ -35,10 +37,11 @@ public class Sticker : MonoBehaviour
         timer = lifetime;
         currentScale = 1f;
         targetScale = 1f;
+        triangleSprite = sr.sprite;
+        rectangleSprite = CreateRectangleSprite();
 
         playerTransform = FindFirstObjectByType<PlayerMovement>()?.transform;
 
-        // Ignore Sticker layer so we don't raycast into ourselves
         int stickerLayer = 1 << LayerMask.NameToLayer("Sticker");
         RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.zero, 100f, ~stickerLayer);
         if (hit.collider != null)
@@ -54,11 +57,9 @@ public class Sticker : MonoBehaviour
         timer -= Time.deltaTime;
         float alpha = Mathf.Clamp01(timer / lifetime);
 
-        // Scale animation
         currentScale = Mathf.MoveTowards(currentScale, targetScale, expandAnimSpeed * Time.deltaTime);
         transform.localScale = originalScale * currentScale;
 
-        // E key toggle
         if (playerTransform != null && Input.GetKeyDown(KeyCode.E))
         {
             float dist = Vector2.Distance(transform.position, playerTransform.position);
@@ -69,7 +70,6 @@ public class Sticker : MonoBehaviour
             }
         }
 
-        // Color: green hint when in range, otherwise normal
         Color baseColor = originalColor;
         if (playerTransform != null && !isExpanded)
         {
@@ -87,9 +87,13 @@ public class Sticker : MonoBehaviour
     {
         isExpanded = true;
         targetScale = expandScale;
-        col.isTrigger = false;
+        sr.sprite = rectangleSprite;
 
-        // Release the button — trade-off: hold button OR be a platform
+        // Swap collider to solid with physics refresh
+        col.enabled = false;
+        col.isTrigger = false;
+        col.enabled = true;
+
         if (targetButton != null)
             targetButton.HoldRelease();
     }
@@ -98,17 +102,21 @@ public class Sticker : MonoBehaviour
     {
         isExpanded = false;
         targetScale = 1f;
-        col.isTrigger = true;
+        sr.sprite = triangleSprite;
 
-        // Re-activate the button
+        col.enabled = false;
+        col.isTrigger = true;
+        col.enabled = true;
+
         if (targetButton != null)
             targetButton.HoldActivate();
     }
 
-    // Called by chaser when eating starts — make intangible without reactivating button
     public void SetIntangible()
     {
+        col.enabled = false;
         col.isTrigger = true;
+        col.enabled = true;
     }
 
     void Expire()
@@ -129,6 +137,17 @@ public class Sticker : MonoBehaviour
     {
         if (targetButton != null)
             targetButton.HoldRelease();
+    }
+
+    Sprite CreateRectangleSprite()
+    {
+        Texture2D tex = new Texture2D(64, 32);
+        Color fill = Color.white;
+        for (int x = 0; x < 64; x++)
+            for (int y = 0; y < 32; y++)
+                tex.SetPixel(x, y, fill);
+        tex.Apply();
+        return Sprite.Create(tex, new Rect(0, 0, 64, 32), new Vector2(0.5f, 0.5f), 32);
     }
 
     void OnDrawGizmosSelected()
