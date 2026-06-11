@@ -20,8 +20,8 @@ public class PopUpChaser : MonoBehaviour
     public float flySpeed = 8f;
     public float homingCutoff = 1.5f;
     public float homingStrength = 3f;
-    public float missCooldown = 1f;
-    public float dazeDuration = 0.3f;
+    public float missCooldown = 2f;
+    public float dazeDuration = 1.5f;
 
     [Header("Sticker Eating")]
     public float eatDuration = 0.5f;
@@ -453,7 +453,7 @@ public class PopUpChaser : MonoBehaviour
         if (player != null)
         {
             Rigidbody2D playerRb = other.attachedRigidbody;
-            bool canStomp = state == State.Idle || state == State.Recovering;
+            bool canStomp = state == State.Eating || state == State.Recovering;
             bool isStomping = canStomp && playerRb.linearVelocity.y < 0
                 && other.transform.position.y > transform.position.y + 0.3f;
 
