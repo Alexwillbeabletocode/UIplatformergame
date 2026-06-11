@@ -1,7 +1,6 @@
 using UnityEngine;
 
 [RequireComponent(typeof(SpriteRenderer))]
-[RequireComponent(typeof(Collider2D))]
 public class Sticker : MonoBehaviour
 {
     [Header("Timer")]
@@ -19,7 +18,7 @@ public class Sticker : MonoBehaviour
     private Button targetButton;
     private SpriteRenderer sr;
     private Color originalColor;
-    private Collider2D col;
+    private Collider2D currentCollider;
     private Transform playerTransform;
     private Vector3 originalScale;
     private bool isExpanded = false;
@@ -31,7 +30,6 @@ public class Sticker : MonoBehaviour
     void Start()
     {
         sr = GetComponent<SpriteRenderer>();
-        col = GetComponent<Collider2D>();
         originalColor = sr.color;
         originalScale = transform.localScale;
         timer = lifetime;
@@ -39,6 +37,10 @@ public class Sticker : MonoBehaviour
         targetScale = 1f;
         triangleSprite = sr.sprite;
         rectangleSprite = CreateRectangleSprite();
+
+        // Create trigger collider for button/chaser detection
+        currentCollider = gameObject.AddComponent<BoxCollider2D>();
+        currentCollider.isTrigger = true;
 
         playerTransform = FindFirstObjectByType<PlayerMovement>()?.transform;
 
@@ -89,10 +91,10 @@ public class Sticker : MonoBehaviour
         targetScale = expandScale;
         sr.sprite = rectangleSprite;
 
-        // Swap collider to solid with physics refresh
-        col.enabled = false;
-        col.isTrigger = false;
-        col.enabled = true;
+        // Replace: remove trigger collider, add solid collider
+        Destroy(currentCollider);
+        currentCollider = gameObject.AddComponent<BoxCollider2D>();
+        currentCollider.isTrigger = false;
 
         if (targetButton != null)
             targetButton.HoldRelease();
@@ -104,9 +106,9 @@ public class Sticker : MonoBehaviour
         targetScale = 1f;
         sr.sprite = triangleSprite;
 
-        col.enabled = false;
-        col.isTrigger = true;
-        col.enabled = true;
+        Destroy(currentCollider);
+        currentCollider = gameObject.AddComponent<BoxCollider2D>();
+        currentCollider.isTrigger = true;
 
         if (targetButton != null)
             targetButton.HoldActivate();
@@ -114,9 +116,13 @@ public class Sticker : MonoBehaviour
 
     public void SetIntangible()
     {
-        col.enabled = false;
-        col.isTrigger = true;
-        col.enabled = true;
+        if (isExpanded)
+        {
+            // During eating: keep visual expanded but make player pass through
+            Destroy(currentCollider);
+            currentCollider = gameObject.AddComponent<BoxCollider2D>();
+            currentCollider.isTrigger = true;
+        }
     }
 
     void Expire()
