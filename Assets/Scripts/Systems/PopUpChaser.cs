@@ -453,7 +453,9 @@ public class PopUpChaser : MonoBehaviour
         if (player != null)
         {
             Rigidbody2D playerRb = other.attachedRigidbody;
-            bool isStomping = playerRb.linearVelocity.y < 0;
+            bool canStomp = state == State.Idle || state == State.Recovering;
+            bool isStomping = canStomp && playerRb.linearVelocity.y < 0
+                && other.transform.position.y > transform.position.y + 0.3f;
 
             if (isStomping)
             {
