@@ -15,6 +15,10 @@ public class PopUpChaser : MonoBehaviour
     public float detectionRange = 10f;
     public float hoverHeight = 1f;
 
+    [Header("Swoop Attack")]
+    public float swoopCooldown = 2f;
+    public float swoopDuration = 0.4f;
+
     [Header("Damage")]
     public float knockbackForce = 12f;
     public float knockbackUpward = 5f;
@@ -58,11 +62,20 @@ public class PopUpChaser : MonoBehaviour
     // Stun
     private float stunTimer = 0f;
 
+    // Swoop
+    private float swoopTimer = 0f;
+    private bool isSwooping = false;
+    private float swoopStateTimer = 0f;
+
+    // Spawn
+    private Vector3 spawnPosition;
+
     void Start()
     {
         sr = GetComponent<SpriteRenderer>();
         rb = GetComponent<Rigidbody2D>();
         originalColor = sr.color;
+        spawnPosition = transform.position;
 
         if (playerTarget == null)
             playerTarget = FindFirstObjectByType<PlayerMovement>()?.transform;
@@ -74,7 +87,6 @@ public class PopUpChaser : MonoBehaviour
     {
         if (playerTarget == null) return;
 
-        // Timers
         if (lungeCooldown > 0f) lungeCooldown -= Time.deltaTime;
 
         if (state == State.Eating)
@@ -91,7 +103,6 @@ public class PopUpChaser : MonoBehaviour
             return;
         }
 
-        // Windup telegraph
         if (isWindingUp)
         {
             windupTimer -= Time.deltaTime;
@@ -104,7 +115,6 @@ public class PopUpChaser : MonoBehaviour
             return;
         }
 
-        // Lunge in progress
         if (isLunging)
         {
             lungeTimer -= Time.deltaTime;
@@ -112,7 +122,6 @@ public class PopUpChaser : MonoBehaviour
 
             if (distToTarget < catchRadius)
             {
-                // Arrived — check if cursor is still close enough to catch
                 float cursorDist = Vector2.Distance(transform.position, cursorController.transform.position);
                 if (cursorDist < catchRadius * 1.5f)
                     DoCatch();
@@ -124,6 +133,26 @@ public class PopUpChaser : MonoBehaviour
                 CancelLunge();
 
             return;
+        }
+
+        // Swoop timing
+        if (isSwooping)
+        {
+            swoopStateTimer -= Time.deltaTime;
+            if (swoopStateTimer <= 0f)
+            {
+                isSwooping = false;
+                swoopTimer = 0f;
+            }
+        }
+        else
+        {
+            swoopTimer += Time.deltaTime;
+            if (swoopTimer >= swoopCooldown && state == State.Chasing)
+            {
+                isSwooping = true;
+                swoopStateTimer = swoopDuration;
+            }
         }
 
         // Pulse when player is in range
@@ -219,7 +248,6 @@ public class PopUpChaser : MonoBehaviour
         cursorController.Glitch(glitchDuration);
         if (stickerSpawner != null) stickerSpawner.ForceCooldown();
 
-        // Recoil
         Vector3 recoilDir = (transform.position - cursorController.transform.position).normalized;
         velocity = (Vector2)recoilDir * stunRecoilForce;
         rb.linearVelocity = velocity;
@@ -239,7 +267,9 @@ public class PopUpChaser : MonoBehaviour
             return cursorController.transform.position;
 
         Vector2 playerPos = playerTarget.position;
-        playerPos.y += hoverHeight;
+        // During a swoop, target the player directly (no hover height)
+        if (!isSwooping)
+            playerPos.y += hoverHeight;
         return playerPos;
     }
 
@@ -268,7 +298,6 @@ public class PopUpChaser : MonoBehaviour
         velocity = Vector2.zero;
         rb.linearVelocity = Vector2.zero;
 
-        // If sticker was expanded, make it intangible so player falls through
         sticker.SetIntangible();
     }
 
@@ -277,6 +306,21 @@ public class PopUpChaser : MonoBehaviour
         if (currentSticker != null) currentSticker.DestroyByChaser();
         currentSticker = null;
         state = State.Chasing;
+    }
+
+    public void ResetToSpawn()
+    {
+        isWindingUp = false;
+        isLunging = false;
+        isSwooping = false;
+        swoopTimer = 0f;
+        lungeCooldown = 0f;
+        state = State.Chasing;
+        currentSticker = null;
+        velocity = Vector2.zero;
+        rb.linearVelocity = Vector2.zero;
+        sr.color = originalColor;
+        transform.position = spawnPosition;
     }
 
     public void Die()
@@ -308,7 +352,7 @@ public class PopUpChaser : MonoBehaviour
             }
             else
             {
-                player.Knockback(transform.position, knockbackForce, knockbackUpward);
+                player.TakeDamage(transform.position);
             }
         }
     }

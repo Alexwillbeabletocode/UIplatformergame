@@ -45,4 +45,11 @@ public class RespawnManager : MonoBehaviour
         if (rb != null)
             rb.linearVelocity = Vector2.zero;
     }
+
+    public void ResetChasers()
+    {
+        PopUpChaser[] chasers = FindObjectsByType<PopUpChaser>(FindObjectsSortMode.None);
+        foreach (PopUpChaser chaser in chasers)
+            chaser.ResetToSpawn();
+    }
 }

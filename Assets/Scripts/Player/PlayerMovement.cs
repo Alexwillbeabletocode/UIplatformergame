@@ -32,6 +32,10 @@ public class PlayerMovement : MonoBehaviour
     public bool enableWallSlide = true;
     public float wallSlideSpeed = 2f;       // Max fall speed while sliding down a wall
 
+    [Header("Lives & Damage")]
+    public int lives = 3;
+    public float invincibilityDuration = 1f;
+
     [Header("Better Jump Feel")]
     public float fallGravityMultiplier = 2.5f;
     public float lowJumpMultiplier = 2f;
@@ -45,16 +49,32 @@ public class PlayerMovement : MonoBehaviour
     private bool isTouchingWallLeft;
     private bool isTouchingWallRight;
     private bool isWallSliding;
+    private bool isInvincible;
+    private float invincibilityTimer;
+    private SpriteRenderer playerSr;
 
     public CursorController cursorController;
 
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
+        playerSr = GetComponent<SpriteRenderer>();
     }
 
     void Update()
     {
+        if (isInvincible)
+        {
+            invincibilityTimer -= Time.deltaTime;
+            if (playerSr != null)
+                playerSr.enabled = Mathf.FloorToInt(invincibilityTimer * 10f) % 2 == 0;
+            if (invincibilityTimer <= 0f)
+            {
+                isInvincible = false;
+                if (playerSr != null) playerSr.enabled = true;
+            }
+        }
+
         if (cursorController != null && cursorController.isCursorMode)
         {
             moveInput = 0f;
@@ -170,8 +190,27 @@ public class PlayerMovement : MonoBehaviour
         coyoteTimeCounter = 0f;
     }
 
+    public void TakeDamage(Vector2 source)
+    {
+        if (isInvincible) return;
+        Knockback(source, 12f, 5f);
+        Die();
+    }
+
     public void Die()
     {
+        if (lives <= 0) return;
+
+        lives--;
+        if (lives <= 0)
+        {
+            lives = 3;
+            RespawnManager.Instance.RespawnPlayer();
+            RespawnManager.Instance.ResetChasers();
+            enabled = true;
+            return;
+        }
+
         enabled = false;
         rb.linearVelocity = Vector2.zero;
         rb.gravityScale = 1f;
@@ -181,7 +220,10 @@ public class PlayerMovement : MonoBehaviour
     void Respawn()
     {
         RespawnManager.Instance.RespawnPlayer();
+        RespawnManager.Instance.ResetChasers();
         enabled = true;
+        isInvincible = true;
+        invincibilityTimer = invincibilityDuration;
     }
 
     void OnDrawGizmos()
