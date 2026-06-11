@@ -21,7 +21,7 @@ public class PopUpChaser : MonoBehaviour
     public float homingCutoff = 1.5f;
     public float homingStrength = 3f;
     public float missCooldown = 2f;
-    public float dazeDuration = 1.5f;
+    public float dazeDuration = 2f;
 
     [Header("Sticker Eating")]
     public float eatDuration = 0.5f;
@@ -54,7 +54,6 @@ public class PopUpChaser : MonoBehaviour
     private float aimTimer = 0f;
     private Vector2 flyTarget;
     private float recoverTimer = 0f;
-    private bool isDazed = false;
     private bool canAttack = true;
     private float attackCooldownTimer = 0f;
 
@@ -177,11 +176,6 @@ public class PopUpChaser : MonoBehaviour
         if (state == State.Recovering)
         {
             recoverTimer -= Time.deltaTime;
-            if (isDazed && recoverTimer <= missCooldown - dazeDuration)
-            {
-                isDazed = false;
-                sr.color = originalColor;
-            }
             if (recoverTimer <= 0f) EnterIdle();
             return;
         }
@@ -223,7 +217,7 @@ public class PopUpChaser : MonoBehaviour
         if (playerTarget == null) return;
         if (state == State.Eating || state == State.Stunned) return;
         if (isWindingUp) return;
-        if (state == State.Aiming || (state == State.Recovering && isDazed)) return;
+        if (state == State.Aiming || state == State.Recovering) return;
 
         if (isLunging)
         {
@@ -309,7 +303,6 @@ public class PopUpChaser : MonoBehaviour
     {
         state = State.Recovering;
         recoverTimer = missCooldown;
-        isDazed = true;
         sr.color = originalColor * 0.5f;
         velocity = Vector2.zero;
         rb.linearVelocity = Vector2.zero;
