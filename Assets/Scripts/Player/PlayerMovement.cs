@@ -170,6 +170,20 @@ public class PlayerMovement : MonoBehaviour
         coyoteTimeCounter = 0f;
     }
 
+    public void Die()
+    {
+        enabled = false;
+        rb.linearVelocity = Vector2.zero;
+        rb.gravityScale = 1f;
+        Invoke(nameof(Respawn), RespawnManager.Instance.deathDelay);
+    }
+
+    void Respawn()
+    {
+        RespawnManager.Instance.RespawnPlayer();
+        enabled = true;
+    }
+
     void OnDrawGizmos()
     {
         if (groundCheck == null) return;
