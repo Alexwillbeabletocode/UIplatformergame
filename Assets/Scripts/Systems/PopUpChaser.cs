@@ -44,6 +44,8 @@ public class PopUpChaser : MonoBehaviour
     public float pulseSpeed = 4f;
 
     private SpriteRenderer sr;
+    private SpriteRenderer rootSr;
+    private Transform visualPivot;
     private Rigidbody2D rb;
     private Color originalColor;
     private Vector2 velocity = Vector2.zero;
@@ -78,10 +80,25 @@ public class PopUpChaser : MonoBehaviour
 
     void Start()
     {
-        sr = GetComponent<SpriteRenderer>();
+        rootSr = GetComponent<SpriteRenderer>();
         rb = GetComponent<Rigidbody2D>();
-        originalColor = sr.color;
         spawnPosition = transform.position;
+
+        // Create visual child that rotates independently (collider stays upright on root)
+        GameObject visualGO = new GameObject("Visual");
+        visualGO.transform.SetParent(transform, false);
+        visualGO.transform.localPosition = Vector3.zero;
+        SpriteRenderer visualSr = visualGO.AddComponent<SpriteRenderer>();
+        visualSr.sprite = rootSr.sprite;
+        visualSr.sortingLayerID = rootSr.sortingLayerID;
+        visualSr.sortingOrder = rootSr.sortingOrder;
+        visualSr.color = rootSr.color;
+        visualPivot = visualGO.transform;
+
+        // Use visual child for all rendering; hide root sprite
+        sr = visualSr;
+        originalColor = rootSr.color;
+        rootSr.enabled = false;
 
         if (playerTarget == null)
             playerTarget = FindFirstObjectByType<PlayerMovement>()?.transform;
@@ -260,16 +277,16 @@ public class PopUpChaser : MonoBehaviour
         {
             Vector2 dir = rb.linearVelocity;
             if (dir.sqrMagnitude > 0.01f)
-                transform.up = dir.normalized;
+                visualPivot.up = dir.normalized;
         }
         else if (state == State.Aiming && playerTarget != null)
         {
             Vector2 dir = (playerTarget.position - transform.position).normalized;
-            transform.up = Vector3.RotateTowards(transform.up, dir, 720f * Mathf.Deg2Rad * Time.deltaTime, 0f);
+            visualPivot.up = Vector3.RotateTowards(visualPivot.up, dir, 720f * Mathf.Deg2Rad * Time.deltaTime, 0f);
         }
         else if (state == State.Idle)
         {
-            transform.up = Vector3.RotateTowards(transform.up, Vector3.up, 360f * Mathf.Deg2Rad * Time.deltaTime, 0f);
+            visualPivot.up = Vector3.RotateTowards(visualPivot.up, Vector3.up, 360f * Mathf.Deg2Rad * Time.deltaTime, 0f);
         }
     }
 
@@ -416,7 +433,7 @@ public class PopUpChaser : MonoBehaviour
         velocity = Vector2.zero;
         rb.linearVelocity = Vector2.zero;
         sr.color = originalColor;
-        transform.up = Vector3.up;
+        visualPivot.up = Vector3.up;
         transform.position = spawnPosition;
     }
 
