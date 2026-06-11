@@ -267,6 +267,9 @@ public class PopUpChaser : MonoBehaviour
         currentSticker = sticker;
         velocity = Vector2.zero;
         rb.linearVelocity = Vector2.zero;
+
+        // If sticker was expanded, make it intangible so player falls through
+        sticker.SetIntangible();
     }
 
     void FinishEating()
