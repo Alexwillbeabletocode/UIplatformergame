@@ -31,6 +31,7 @@ public class Draggable : MonoBehaviour
     private Rigidbody2D rb;
 
     private Vector3 lastValidPosition;
+    private bool wasCursorModeOn = false;
 
     void Start()
     {
@@ -67,11 +68,20 @@ public class Draggable : MonoBehaviour
 
     void Update()
     {
-        if (cursorController == null || !cursorController.isCursorMode)
+        bool cursorOn = cursorController != null && cursorController.isCursorMode;
+
+        // Detect transition from cursor mode ON → OFF
+        if (wasCursorModeOn && !cursorOn)
         {
             isDragging = false;
+            SeparatePlayer();
+            wasCursorModeOn = false;
             return;
         }
+
+        wasCursorModeOn = cursorOn;
+
+        if (!cursorOn) return;
 
         Vector3 mouseWorld = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         mouseWorld.z = 0;
@@ -165,6 +175,26 @@ public class Draggable : MonoBehaviour
                 {
                     sr.color = invalidColor;
                 }
+            }
+        }
+    }
+
+    void SeparatePlayer()
+    {
+        PlayerMovement player = FindFirstObjectByType<PlayerMovement>();
+        if (player == null) return;
+
+        Collider2D playerCol = player.GetComponent<Collider2D>();
+        if (playerCol == null) return;
+
+        if (playerCol.bounds.Intersects(col.bounds))
+        {
+            float platformTop = col.bounds.max.y;
+            float playerBottom = playerCol.bounds.min.y;
+            if (playerBottom < platformTop)
+            {
+                float pushUp = platformTop - playerBottom + 0.05f;
+                player.transform.position += new Vector3(0, pushUp, 0);
             }
         }
     }
