@@ -37,6 +37,8 @@ public class Draggable : MonoBehaviour
 
         if (progressBar != null)
             barBaseScale = progressBar.localScale;
+
+        UpdateProgressBar();
     }
 
     void Update()
