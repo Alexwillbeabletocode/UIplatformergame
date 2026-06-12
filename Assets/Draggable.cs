@@ -2,6 +2,7 @@ using UnityEngine;
 
 [RequireComponent(typeof(Collider2D))]
 [RequireComponent(typeof(SpriteRenderer))]
+[RequireComponent(typeof(Rigidbody2D))]
 public class Draggable : MonoBehaviour
 {
     public CursorController cursorController;
@@ -15,6 +16,7 @@ public class Draggable : MonoBehaviour
 
     [Header("Movement")]
     public float followSpeed = 15f;
+    public float maxDragSpeed = 8f;
 
     [Header("Placement")]
     public LayerMask blockingLayer;
@@ -26,6 +28,7 @@ public class Draggable : MonoBehaviour
 
     private SpriteRenderer sr;
     private Collider2D col;
+    private Rigidbody2D rb;
 
     private Vector3 lastValidPosition;
 
@@ -33,9 +36,28 @@ public class Draggable : MonoBehaviour
     {
         sr = GetComponent<SpriteRenderer>();
         col = GetComponent<Collider2D>();
-        targetPosition = transform.position;
+        rb = GetComponent<Rigidbody2D>();
+        rb.bodyType = RigidbodyType2D.Kinematic;
+        rb.gravityScale = 0f;
 
-        lastValidPosition = transform.position; 
+        targetPosition = transform.position;
+        lastValidPosition = transform.position;
+        sr.color = validColor;
+    }
+
+    void FixedUpdate()
+    {
+        if (!isDragging) return;
+
+        Vector3 currentPos = transform.position;
+        Vector3 newPos = Vector3.Lerp(currentPos, targetPosition, followSpeed * Time.fixedDeltaTime);
+
+        // Cap speed
+        Vector3 delta = newPos - currentPos;
+        if (delta.magnitude > maxDragSpeed * Time.fixedDeltaTime)
+            newPos = currentPos + delta.normalized * maxDragSpeed * Time.fixedDeltaTime;
+
+        rb.MovePosition(newPos);
     }
 
     void Update()
@@ -46,7 +68,6 @@ public class Draggable : MonoBehaviour
         Vector3 mouseWorld = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         mouseWorld.z = 0;
 
-        // Start dragging
         if (Input.GetMouseButtonDown(0))
         {
             RaycastHit2D hit = Physics2D.Raycast(mouseWorld, Vector2.zero);
@@ -56,12 +77,10 @@ public class Draggable : MonoBehaviour
             }
         }
 
-        // Stop dragging
         if (Input.GetMouseButtonUp(0))
         {
             isDragging = false;
 
-            // Check if final position is valid
             Collider2D hit = Physics2D.OverlapBox(
                 targetPosition,
                 col.bounds.size * 0.9f,
@@ -71,17 +90,17 @@ public class Draggable : MonoBehaviour
 
             bool isValid = (hit == null || hit == col);
 
-            // Snap to correct position
             if (isValid)
             {
-                transform.position = targetPosition;
+                rb.MovePosition(targetPosition);
+                lastValidPosition = targetPosition;
             }
             else
             {
-                transform.position = lastValidPosition;
+                rb.MovePosition(lastValidPosition);
             }
 
-            // Reset color
+            targetPosition = transform.position;
             sr.color = validColor;
         }
 
@@ -89,11 +108,9 @@ public class Draggable : MonoBehaviour
         {
             Vector3 desired = mouseWorld;
 
-            // Axis locking
             if (lockX) desired.x = transform.position.x;
             if (lockY) desired.y = transform.position.y;
 
-            // Grid snapping
             desired.x = Mathf.Round(desired.x / gridSize) * gridSize;
             desired.y = Mathf.Round(desired.y / gridSize) * gridSize;
 
@@ -104,7 +121,7 @@ public class Draggable : MonoBehaviour
             {
                 direction.Normalize();
 
-                float stepSize = gridSize * 0.5f; // smaller = safer
+                float stepSize = gridSize * 0.5f;
                 int steps = Mathf.CeilToInt(distance / stepSize);
 
                 Vector3 currentPos = transform.position;
@@ -134,31 +151,13 @@ public class Draggable : MonoBehaviour
                 {
                     targetPosition = desired;
                     lastValidPosition = desired;
-
                     sr.color = validColor;
                 }
                 else
                 {
                     sr.color = invalidColor;
                 }
-
-                // Smooth movement
-                transform.position = Vector3.Lerp(
-                    transform.position,
-                    currentPos,
-                    followSpeed * Time.deltaTime
-                );
-            }
-        }
-        else
-            {
-                transform.position = Vector3.Lerp(
-                transform.position,
-                lastValidPosition,
-                followSpeed * Time.deltaTime
-);
-                // DON'T update position if invalid
-                // stays at last valid spot
             }
         }
     }
+}
