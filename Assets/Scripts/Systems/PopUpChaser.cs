@@ -190,7 +190,7 @@ public class PopUpChaser : MonoBehaviour
         }
         else if (state == State.Aiming && playerTarget != null)
         {
-            Vector2 dir = (GetFlyTarget() - transform.position).normalized;
+            Vector2 dir = ((Vector2)GetFlyTarget() - (Vector2)transform.position).normalized;
             transform.up = Vector3.RotateTowards(transform.up, dir, 720f * Mathf.Deg2Rad * Time.deltaTime, 0f);
         }
         else if (state == State.Idle)
