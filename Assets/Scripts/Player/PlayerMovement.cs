@@ -201,6 +201,10 @@ public class PlayerMovement : MonoBehaviour
     {
         if (lives <= 0) return;
 
+        // Instantly invincible to prevent chain hits during death delay
+        isInvincible = true;
+        invincibilityTimer = invincibilityDuration;
+
         lives--;
         if (lives <= 0)
         {
