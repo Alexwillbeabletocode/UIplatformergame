@@ -14,14 +14,13 @@ public class Draggable : MonoBehaviour
     public float pauseDuration = 1f;
 
     [Header("Progress Bar")]
-    public Color barColor = new Color(0f, 0.7f, 1f, 0.8f);
-    public float barInset = 0.1f;
+    [Tooltip("Child transform whose Y scale goes from 0 to 100% as platform lifts. Set its sprite pivot to bottom-center so it grows upward.")]
+    public Transform progressBar;
 
     private Vector3 startPosition;
-    private SpriteRenderer sr;
+    private Vector3 barBaseScale;
     private Collider2D col;
     private Rigidbody2D rb;
-    private SpriteRenderer barSr;
 
     private enum LiftState { Idle, Lifting, Pausing, Returning }
     private LiftState state = LiftState.Idle;
@@ -29,33 +28,15 @@ public class Draggable : MonoBehaviour
 
     void Start()
     {
-        sr = GetComponent<SpriteRenderer>();
         col = GetComponent<Collider2D>();
         rb = GetComponent<Rigidbody2D>();
         rb.bodyType = RigidbodyType2D.Kinematic;
         rb.gravityScale = 0f;
 
         startPosition = transform.position;
-        CreateProgressBar();
-    }
 
-    void CreateProgressBar()
-    {
-        GameObject barGO = new GameObject("LiftProgress");
-        barGO.transform.SetParent(transform);
-        barSr = barGO.AddComponent<SpriteRenderer>();
-
-        Texture2D tex = new Texture2D(1, 1);
-        tex.SetPixel(0, 0, Color.white);
-        tex.Apply();
-        barSr.sprite = Sprite.Create(tex, new Rect(0, 0, 1, 1), new Vector2(0.5f, 0f), 1f);
-        barSr.color = barColor;
-        barSr.sortingOrder = sr.sortingOrder + 1;
-
-        float h = col.bounds.size.y;
-        float w = col.bounds.size.x;
-        barGO.transform.localPosition = new Vector3(0, -h / 2f + barInset, 0);
-        barGO.transform.localScale = new Vector3(w - barInset * 2f, 0f, 1f);
+        if (progressBar != null)
+            barBaseScale = progressBar.localScale;
     }
 
     void Update()
@@ -129,17 +110,13 @@ public class Draggable : MonoBehaviour
 
     void UpdateProgressBar()
     {
-        if (barSr == null || maxLiftHeight <= 0f) return;
+        if (progressBar == null || maxLiftHeight <= 0f) return;
 
         float offset = transform.position.y - startPosition.y;
         float progress = Mathf.Clamp01(offset / maxLiftHeight);
 
-        float h = col.bounds.size.y;
-        float maxBarHeight = Mathf.Max(0f, h - barInset * 2f);
-        float barHeight = Mathf.Lerp(0f, maxBarHeight, progress);
-
-        Vector3 scale = barSr.transform.localScale;
-        scale.y = barHeight;
-        barSr.transform.localScale = scale;
+        Vector3 scale = barBaseScale;
+        scale.y = barBaseScale.y * progress;
+        progressBar.localScale = scale;
     }
 }
