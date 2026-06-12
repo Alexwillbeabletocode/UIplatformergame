@@ -66,7 +66,7 @@ public class PopUpChaser : MonoBehaviour
         float radius = 0.5f;
         if (existing is BoxCollider2D box)
         {
-            radius = Mathf.Max(box.size.x, box.size.y) * 0.5f;
+            radius = Mathf.Min(box.size.x, box.size.y) * 0.5f;
             Destroy(existing);
         }
         CircleCollider2D circle = gameObject.AddComponent<CircleCollider2D>();
@@ -191,6 +191,11 @@ public class PopUpChaser : MonoBehaviour
         else if (state == State.Aiming && playerTarget != null)
         {
             Vector2 dir = ((Vector2)GetFlyTarget() - (Vector2)transform.position).normalized;
+            transform.up = Vector3.RotateTowards(transform.up, dir, 720f * Mathf.Deg2Rad * Time.deltaTime, 0f);
+        }
+        else if (state == State.Eating && currentSticker != null)
+        {
+            Vector2 dir = ((Vector2)currentSticker.transform.position - (Vector2)transform.position).normalized;
             transform.up = Vector3.RotateTowards(transform.up, dir, 720f * Mathf.Deg2Rad * Time.deltaTime, 0f);
         }
         else if (state == State.Idle)
