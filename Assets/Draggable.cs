@@ -97,7 +97,7 @@ public class Draggable : MonoBehaviour
 
     void FixedUpdate()
     {
-        Vector2 prevPos = rb.position;
+        Vector2 delta = Vector2.zero;
 
         switch (state)
         {
@@ -112,7 +112,8 @@ public class Draggable : MonoBehaviour
                 }
 
                 float step = Mathf.Min(moveSpeed * Time.fixedDeltaTime, remaining);
-                rb.MovePosition(rb.position + MoveVector * step);
+                delta = MoveVector * step;
+                rb.MovePosition(rb.position + delta);
                 UpdateProgressBar();
                 break;
 
@@ -123,19 +124,20 @@ public class Draggable : MonoBehaviour
                 break;
 
             case LiftState.Returning:
-                Vector2 newPos = Vector2.MoveTowards(rb.position, startPosition, returnSpeed * Time.fixedDeltaTime);
-                rb.MovePosition(newPos);
+                Vector2 targetPos = Vector2.MoveTowards(rb.position, startPosition, returnSpeed * Time.fixedDeltaTime);
+                delta = targetPos - rb.position;
+                rb.MovePosition(targetPos);
                 UpdateProgressBar();
-                if (Vector2.Distance(rb.position, startPosition) < 0.01f)
+                if (Vector2.Distance(targetPos, startPosition) < 0.01f)
                 {
-                    rb.MovePosition(startPosition);
                     state = LiftState.Idle;
                     UpdateProgressBar();
                 }
                 break;
         }
 
-        CarryPlayer(rb.position - prevPos);
+        if (delta.magnitude > 0.0001f)
+            CarryPlayer(delta);
     }
 
     private float TravelOffset
@@ -175,7 +177,7 @@ public class Draggable : MonoBehaviour
 
         if (playerCol == null || col == null) return;
 
-        if (playerCol.bounds.Intersects(col.bounds))
+        if (playerCol.IsTouching(col))
             playerRb.position += delta;
     }
 }
