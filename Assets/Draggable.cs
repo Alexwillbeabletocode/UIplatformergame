@@ -48,6 +48,11 @@ public class Draggable : MonoBehaviour
     void FixedUpdate()
     {
         if (!isDragging) return;
+        if (cursorController == null || !cursorController.isCursorMode)
+        {
+            isDragging = false;
+            return;
+        }
 
         Vector3 currentPos = transform.position;
         Vector3 newPos = Vector3.Lerp(currentPos, targetPosition, followSpeed * Time.fixedDeltaTime);
@@ -63,7 +68,10 @@ public class Draggable : MonoBehaviour
     void Update()
     {
         if (cursorController == null || !cursorController.isCursorMode)
+        {
+            isDragging = false;
             return;
+        }
 
         Vector3 mouseWorld = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         mouseWorld.z = 0;
