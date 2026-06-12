@@ -177,7 +177,19 @@ public class Draggable : MonoBehaviour
 
         if (playerCol == null || col == null) return;
 
-        if (playerCol.IsTouching(col))
+        bool touching = playerCol.IsTouching(col);
+
+        // Fallback: bounds proximity check (catches cases where contact isn't established yet)
+        if (!touching)
+        {
+            Bounds pb = playerCol.bounds;
+            Bounds plb = col.bounds;
+            bool vertical = pb.min.y <= plb.max.y + 0.1f && pb.min.y >= plb.min.y;
+            bool horizontal = pb.max.x > plb.min.x && pb.min.x < plb.max.x;
+            touching = vertical && horizontal;
+        }
+
+        if (touching)
             playerRb.position += delta;
     }
 }
