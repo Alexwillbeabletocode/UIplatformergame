@@ -63,14 +63,11 @@ public class PopUpChaser : MonoBehaviour
         spawnPosition = transform.position;
 
         Collider2D existing = GetComponent<Collider2D>();
-        float radius = 0.3f;
-        if (existing is BoxCollider2D box)
-        {
-            radius = Mathf.Min(box.size.x, box.size.y) * 0.5f;
+        if (existing != null)
             Destroy(existing);
-        }
+
         CircleCollider2D circle = gameObject.AddComponent<CircleCollider2D>();
-        circle.radius = radius;
+        circle.radius = 0.3f;
         circle.isTrigger = true;
 
         if (playerTarget == null)
