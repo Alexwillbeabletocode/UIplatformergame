@@ -19,6 +19,7 @@ public class Draggable : MonoBehaviour
 
     private Vector3 startPosition;
     private Vector3 barBaseScale;
+    private SpriteRenderer sr;
     private Collider2D col;
     private Rigidbody2D rb;
 
@@ -28,6 +29,7 @@ public class Draggable : MonoBehaviour
 
     void Start()
     {
+        sr = GetComponent<SpriteRenderer>();
         col = GetComponent<Collider2D>();
         rb = GetComponent<Rigidbody2D>();
         rb.bodyType = RigidbodyType2D.Kinematic;
@@ -36,7 +38,12 @@ public class Draggable : MonoBehaviour
         startPosition = transform.position;
 
         if (progressBar != null)
+        {
             barBaseScale = progressBar.localScale;
+            SpriteRenderer barSr = progressBar.GetComponent<SpriteRenderer>();
+            if (barSr != null)
+                barSr.sortingOrder = sr.sortingOrder + 1;
+        }
 
         UpdateProgressBar();
     }
