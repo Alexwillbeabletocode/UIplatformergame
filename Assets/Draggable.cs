@@ -5,16 +5,21 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody2D))]
 public class Draggable : MonoBehaviour
 {
+    public enum MoveAxis { X, Y }
+    public enum MoveDirection { Positive, Negative }
+
     public CursorController cursorController;
 
-    [Header("Lift Settings")]
-    public float maxLiftHeight = 5f;
-    public float liftSpeed = 3f;
+    [Header("Movement")]
+    public MoveAxis moveAxis = MoveAxis.Y;
+    public MoveDirection moveDirection = MoveDirection.Positive;
+    public float maxTravelDistance = 5f;
+    public float moveSpeed = 3f;
     public float returnSpeed = 5f;
     public float pauseDuration = 1f;
 
     [Header("Progress Bar")]
-    [Tooltip("Child transform whose Y scale goes from 0 to 100% as platform lifts. Set its sprite pivot to bottom-center so it grows upward.")]
+    [Tooltip("Child transform whose Y scale goes from 0 to 100% as platform moves. Set its sprite pivot to bottom-center so it grows upward.")]
     public Transform progressBar;
 
     private Vector3 startPosition;
@@ -26,6 +31,15 @@ public class Draggable : MonoBehaviour
     private enum LiftState { Idle, Lifting, Pausing, Returning }
     private LiftState state = LiftState.Idle;
     private float pauseTimer = 0f;
+
+    private Vector2 MoveVector
+    {
+        get
+        {
+            Vector2 dir = moveAxis == MoveAxis.X ? Vector2.right : Vector2.up;
+            return moveDirection == MoveDirection.Positive ? dir : -dir;
+        }
+    }
 
     void Start()
     {
@@ -82,8 +96,7 @@ public class Draggable : MonoBehaviour
         switch (state)
         {
             case LiftState.Lifting:
-                float offset = transform.position.y - startPosition.y;
-                float remaining = maxLiftHeight - offset;
+                float remaining = maxTravelDistance - TravelOffset;
 
                 if (remaining <= 0f)
                 {
@@ -92,8 +105,8 @@ public class Draggable : MonoBehaviour
                     break;
                 }
 
-                float step = Mathf.Min(liftSpeed * Time.fixedDeltaTime, remaining);
-                rb.MovePosition(rb.position + Vector2.up * step);
+                float step = Mathf.Min(moveSpeed * Time.fixedDeltaTime, remaining);
+                rb.MovePosition(rb.position + MoveVector * step);
                 UpdateProgressBar();
                 break;
 
@@ -117,12 +130,22 @@ public class Draggable : MonoBehaviour
         }
     }
 
+    private float TravelOffset
+    {
+        get
+        {
+            float raw = moveAxis == MoveAxis.X
+                ? transform.position.x - startPosition.x
+                : transform.position.y - startPosition.y;
+            return moveDirection == MoveDirection.Positive ? raw : -raw;
+        }
+    }
+
     void UpdateProgressBar()
     {
-        if (progressBar == null || maxLiftHeight <= 0f) return;
+        if (progressBar == null || maxTravelDistance <= 0f) return;
 
-        float offset = transform.position.y - startPosition.y;
-        float progress = Mathf.Clamp01(offset / maxLiftHeight);
+        float progress = Mathf.Clamp01(TravelOffset / maxTravelDistance);
 
         Vector3 scale = barBaseScale;
         scale.y = barBaseScale.y * progress;
