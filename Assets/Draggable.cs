@@ -136,7 +136,7 @@ public class Draggable : MonoBehaviour
                 break;
         }
 
-        if (delta.magnitude > 0.0001f)
+        if (delta.magnitude > 0.0001f && moveAxis == MoveAxis.X)
             CarryPlayer(delta);
     }
 
