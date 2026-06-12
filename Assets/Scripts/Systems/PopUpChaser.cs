@@ -63,7 +63,7 @@ public class PopUpChaser : MonoBehaviour
         spawnPosition = transform.position;
 
         Collider2D existing = GetComponent<Collider2D>();
-        float radius = 0.5f;
+        float radius = 0.3f;
         if (existing is BoxCollider2D box)
         {
             radius = Mathf.Min(box.size.x, box.size.y) * 0.5f;
