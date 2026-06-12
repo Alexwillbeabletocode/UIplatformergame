@@ -11,14 +11,11 @@ public class ModeSwitcher : MonoBehaviour
         {
             cursorController.SetCursorMode(!cursorController.isCursorMode);
 
-            if (cursorController.isCursorMode)
+            PlayerMovement player = FindFirstObjectByType<PlayerMovement>();
+            if (player != null)
             {
-                PlayerMovement player = FindFirstObjectByType<PlayerMovement>();
-                if (player != null)
-                {
-                    Rigidbody2D rb = player.GetComponent<Rigidbody2D>();
-                    if (rb != null) rb.linearVelocity = Vector2.zero;
-                }
+                Rigidbody2D rb = player.GetComponent<Rigidbody2D>();
+                if (rb != null) rb.linearVelocity = Vector2.zero;
             }
         }
     }
