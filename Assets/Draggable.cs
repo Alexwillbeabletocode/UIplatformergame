@@ -32,6 +32,10 @@ public class Draggable : MonoBehaviour
     private LiftState state = LiftState.Idle;
     private float pauseTimer = 0f;
 
+    private Transform playerTransform;
+    private Rigidbody2D playerRb;
+    private Collider2D playerCol;
+
     private Vector2 MoveVector
     {
         get
@@ -93,6 +97,8 @@ public class Draggable : MonoBehaviour
 
     void FixedUpdate()
     {
+        Vector2 prevPos = rb.position;
+
         switch (state)
         {
             case LiftState.Lifting:
@@ -128,6 +134,8 @@ public class Draggable : MonoBehaviour
                 }
                 break;
         }
+
+        CarryPlayer(rb.position - prevPos);
     }
 
     private float TravelOffset
@@ -150,5 +158,24 @@ public class Draggable : MonoBehaviour
         Vector3 scale = barBaseScale;
         scale.y = barBaseScale.y * progress;
         progressBar.localScale = scale;
+    }
+
+    void CarryPlayer(Vector2 delta)
+    {
+        if (delta.magnitude < 0.0001f) return;
+
+        if (playerTransform == null)
+        {
+            PlayerMovement pm = FindFirstObjectByType<PlayerMovement>();
+            if (pm == null) return;
+            playerTransform = pm.transform;
+            playerRb = pm.GetComponent<Rigidbody2D>();
+            playerCol = pm.GetComponent<Collider2D>();
+        }
+
+        if (playerCol == null || col == null) return;
+
+        if (playerCol.bounds.Intersects(col.bounds))
+            playerRb.position += delta;
     }
 }
