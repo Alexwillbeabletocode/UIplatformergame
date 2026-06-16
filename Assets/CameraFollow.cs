@@ -72,7 +72,7 @@ public class CameraFollow : MonoBehaviour
                 transform.position.z
             );
 
-            // Slow camera when hovering an interactable
+            // Slow camera when hovering an interactable or near a keyhole
             float speed = cursorFollowSpeed;
             if (interactableLayers.value != 0)
             {
@@ -80,6 +80,7 @@ public class CameraFollow : MonoBehaviour
                 if (hit.collider != null)
                     speed *= hoverStopMultiplier;
             }
+            speed *= Keyhole.GetSlowdownFactor(cursorPos);
 
             transform.position = Vector3.Lerp(
                 transform.position, desiredPos, speed * Time.deltaTime
