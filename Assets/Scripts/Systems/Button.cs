@@ -4,7 +4,7 @@ public class Button : MonoBehaviour
 {
     public enum ButtonMode
     {
-        Toggle,   // Click to flip on/off
+        Toggle,   // Activates for a duration, then auto-deactivates
         Hold      // Active only while mouse is held down (or sticker is placed)
     }
 
@@ -17,12 +17,27 @@ public class Button : MonoBehaviour
     [Header("Button Mode")]
     public ButtonMode mode = ButtonMode.Hold;
 
+    [Header("Toggle Settings")]
+    public float toggleDuration = 3f;
+
     // Internal state
     private bool isOn = false;
     private bool isBeingHeld = false;   // True while mouse is held over this button
+    private float toggleTimer = 0f;
 
     void Update()
     {
+        // Timer countdown for Toggle mode
+        if (mode == ButtonMode.Toggle && isOn)
+        {
+            toggleTimer -= Time.deltaTime;
+            if (toggleTimer <= 0f)
+            {
+                isOn = false;
+                SetTargets(false);
+            }
+        }
+
         if (cursorController == null || !cursorController.isCursorMode)
             return;
 
@@ -33,28 +48,32 @@ public class Button : MonoBehaviour
         if (mode == ButtonMode.Toggle)
         {
             if (Input.GetMouseButtonDown(0) && mouseOverThis)
-                HandleToggle();
+                HandleToggleClick();
         }
         else if (mode == ButtonMode.Hold)
         {
             if (Input.GetMouseButtonDown(0) && mouseOverThis)
                 StartHold();
 
-            // Release if mouse button is lifted, regardless of position
             if (Input.GetMouseButtonUp(0) && isBeingHeld)
                 EndHold();
         }
     }
 
-    // --- Toggle logic ---
+    // --- Toggle logic (timed) ---
 
-    void HandleToggle()
+    void HandleToggleClick()
     {
-        isOn = !isOn;
-        SetTargets(isOn);
+        toggleTimer = toggleDuration;
+
+        if (!isOn)
+        {
+            isOn = true;
+            SetTargets(true);
+        }
     }
 
-    // --- Hold logic ---
+    // --- Hold logic (momentary) ---
 
     void StartHold()
     {
@@ -70,17 +89,27 @@ public class Button : MonoBehaviour
     }
 
     // --- Sticker interface ---
-    // Called by Sticker.cs when it lands on this button
 
     public void HoldActivate()
     {
-        SetTargets(true);
+        if (mode == ButtonMode.Toggle)
+        {
+            toggleTimer = toggleDuration;
+            if (!isOn)
+            {
+                isOn = true;
+                SetTargets(true);
+            }
+        }
+        else
+        {
+            SetTargets(true);
+        }
     }
 
     public void HoldRelease()
     {
-        // Only release if the player isn't also physically holding the button
-        if (!isBeingHeld)
+        if (mode == ButtonMode.Hold && !isBeingHeld)
             SetTargets(false);
     }
 
