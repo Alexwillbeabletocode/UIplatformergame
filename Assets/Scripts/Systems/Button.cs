@@ -20,13 +20,33 @@ public class Button : MonoBehaviour
     [Header("Toggle Settings")]
     public float toggleDuration = 3f;
 
+    [Header("Sticker Slot")]
+    public GameObject stickerSlotPrefab;
+    public float slotDimAlpha = 0.3f;
+
     // Internal state
     private bool isOn = false;
-    private bool isBeingHeld = false;   // True while mouse is held over this button
+    private bool isBeingHeld = false;
+    private bool hasSticker = false;
     private float toggleTimer = 0f;
+    private SpriteRenderer slotSr;
+
+    void Start()
+    {
+        if (stickerSlotPrefab != null)
+        {
+            GameObject slot = Instantiate(stickerSlotPrefab, transform);
+            slot.transform.localPosition = Vector3.zero;
+            slotSr = slot.GetComponent<SpriteRenderer>();
+        }
+
+        UpdateSlot();
+    }
 
     void Update()
     {
+        UpdateSlot();
+
         // Timer countdown for Toggle mode
         if (mode == ButtonMode.Toggle && isOn)
         {
@@ -92,6 +112,9 @@ public class Button : MonoBehaviour
 
     public void HoldActivate()
     {
+        hasSticker = true;
+        UpdateSlot();
+
         if (mode == ButtonMode.Toggle)
         {
             toggleTimer = toggleDuration;
@@ -109,8 +132,30 @@ public class Button : MonoBehaviour
 
     public void HoldRelease()
     {
+        hasSticker = false;
+        UpdateSlot();
+
         if (mode == ButtonMode.Hold && !isBeingHeld)
             SetTargets(false);
+    }
+
+    // --- Slot visibility ---
+
+    void UpdateSlot()
+    {
+        if (slotSr == null) return;
+
+        float alpha;
+        if (hasSticker)
+            alpha = 0.05f;
+        else if (cursorController != null && cursorController.isCursorMode)
+            alpha = 1f;
+        else
+            alpha = slotDimAlpha;
+
+        Color c = slotSr.color;
+        c.a = alpha;
+        slotSr.color = c;
     }
 
     // --- Shared helper ---
