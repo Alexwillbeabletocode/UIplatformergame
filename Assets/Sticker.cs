@@ -20,16 +20,29 @@ public class Sticker : MonoBehaviour
         originalColor = sr.color;
         timer = lifetime;
 
-        col = gameObject.AddComponent<BoxCollider2D>();
-        col.isTrigger = false;
-
-        int stickerLayer = 1 << LayerMask.NameToLayer("Sticker");
-        RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.zero, 100f, ~stickerLayer);
-        if (hit.collider != null)
+        col = GetComponent<BoxCollider2D>();
+        if (col == null)
         {
-            targetKeyhole = hit.collider.GetComponent<Keyhole>();
-            if (targetKeyhole != null)
-                targetKeyhole.HoldActivate();
+            col = gameObject.AddComponent<BoxCollider2D>();
+            col.isTrigger = false;
+            if (sr.sprite != null)
+                col.size = sr.sprite.bounds.size;
+        }
+
+        if (targetKeyhole != null)
+        {
+            targetKeyhole.HoldActivate();
+        }
+        else
+        {
+            int stickerLayer = 1 << LayerMask.NameToLayer("Sticker");
+            RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.zero, 100f, ~stickerLayer);
+            if (hit.collider != null)
+            {
+                targetKeyhole = hit.collider.GetComponent<Keyhole>();
+                if (targetKeyhole != null)
+                    targetKeyhole.HoldActivate();
+            }
         }
     }
 
@@ -66,5 +79,10 @@ public class Sticker : MonoBehaviour
     {
         if (targetKeyhole != null)
             targetKeyhole.HoldRelease();
+    }
+
+    public Keyhole AssignedKeyhole
+    {
+        set { targetKeyhole = value; }
     }
 }

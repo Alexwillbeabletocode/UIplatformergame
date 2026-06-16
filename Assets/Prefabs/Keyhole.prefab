@@ -10,7 +10,6 @@ GameObject:
   m_Component:
   - component: {fileID: 3629573746343590460}
   - component: {fileID: 8193159788114170889}
-  - component: {fileID: 4802478367414264723}
   m_Layer: 8
   m_Name: Keyhole
   m_TagString: Untagged
@@ -83,7 +82,7 @@ SpriteRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_Sprite: {fileID: 7482667652216324306, guid: 311925a002f4447b3a28927169b83ea6, type: 3}
-  m_Color: {r: 0.627451, g: 0.63529414, b: 0.6313726, a: 0.49803922}
+  m_Color: {r: 0.627451, g: 0.63529414, b: 0.6313726, a: 0.25490198}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -92,19 +91,6 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
---- !u!114 &4802478367414264723
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 71981423427994150}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e7916bcbd7aca5d4ebe55a8777309b9e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  lifetime: 20
 --- !u!1 &152279288433711688
 GameObject:
   m_ObjectHideFlags: 0
@@ -115,9 +101,8 @@ GameObject:
   m_Component:
   - component: {fileID: 6253780169527091367}
   - component: {fileID: 5653655474487913967}
-  - component: {fileID: 433519275600604484}
   m_Layer: 8
-  m_Name: Keyhole (3)
+  m_Name: Walls
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -132,11 +117,11 @@ Transform:
   m_GameObject: {fileID: 152279288433711688}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0.5755395, y: 0, z: 0}
-  m_LocalScale: {x: 0.098875, y: 1.25, z: 1}
+  m_LocalPosition: {x: -1.1924001, y: -0.08863997, z: 0}
+  m_LocalScale: {x: 0.17179532, y: 0.37500006, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 3669304638168191759}
+  m_Father: {fileID: 2682898042326792108}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &5653655474487913967
 SpriteRenderer:
@@ -197,19 +182,6 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
---- !u!114 &433519275600604484
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 152279288433711688}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e7916bcbd7aca5d4ebe55a8777309b9e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  lifetime: 20
 --- !u!1 &396084995626376846
 GameObject:
   m_ObjectHideFlags: 0
@@ -220,9 +192,8 @@ GameObject:
   m_Component:
   - component: {fileID: 1567478990191706566}
   - component: {fileID: 5740220457511613186}
-  - component: {fileID: 4995963564556914425}
   m_Layer: 8
-  m_Name: Keyhole (1)
+  m_Name: Walls
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -237,11 +208,11 @@ Transform:
   m_GameObject: {fileID: 396084995626376846}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.85, z: 0}
-  m_LocalScale: {x: 1.25, y: 0.5, z: 1}
+  m_LocalPosition: {x: -0.19239998, y: 0.16636014, z: 0}
+  m_LocalScale: {x: 2.1718752, y: 0.15000002, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 3669304638168191759}
+  m_Father: {fileID: 2682898042326792108}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &5740220457511613186
 SpriteRenderer:
@@ -302,19 +273,6 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
---- !u!114 &4995963564556914425
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 396084995626376846}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e7916bcbd7aca5d4ebe55a8777309b9e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  lifetime: 20
 --- !u!1 &1832335648213561671
 GameObject:
   m_ObjectHideFlags: 0
@@ -325,9 +283,8 @@ GameObject:
   m_Component:
   - component: {fileID: 8860082875198348089}
   - component: {fileID: 6899018740479519108}
-  - component: {fileID: 4403698472597106980}
   m_Layer: 8
-  m_Name: Keyhole (4)
+  m_Name: Walls
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -342,11 +299,11 @@ Transform:
   m_GameObject: {fileID: 1832335648213561671}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.5755395, y: 0, z: 0}
-  m_LocalScale: {x: 0.098875, y: 1.25, z: 1}
+  m_LocalPosition: {x: 0.8076, y: -0.08863997, z: 0}
+  m_LocalScale: {x: 0.17179532, y: 0.37500006, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 3669304638168191759}
+  m_Father: {fileID: 2682898042326792108}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &6899018740479519108
 SpriteRenderer:
@@ -407,19 +364,41 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
---- !u!114 &4403698472597106980
-MonoBehaviour:
+--- !u!1 &4555394495080192073
+GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1832335648213561671}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e7916bcbd7aca5d4ebe55a8777309b9e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  lifetime: 20
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2682898042326792108}
+  m_Layer: 0
+  m_Name: Keyholewalls
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2682898042326792108
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4555394495080192073}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0.11073379, y: 0.29546654, z: 0}
+  m_LocalScale: {x: 0.5755395, y: 3.333333, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1567478990191706566}
+  - {fileID: 1221236083307881758}
+  - {fileID: 6253780169527091367}
+  - {fileID: 8860082875198348089}
+  m_Father: {fileID: 3669304638168191759}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &7211168867102198194
 GameObject:
   m_ObjectHideFlags: 0
@@ -430,7 +409,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3669304638168191759}
   - component: {fileID: 6333430579444087001}
-  - component: {fileID: 3379979751015650509}
+  - component: {fileID: 5606590253648036325}
   m_Layer: 8
   m_Name: Keyhole
   m_TagString: Untagged
@@ -452,10 +431,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 3629573746343590460}
-  - {fileID: 1567478990191706566}
-  - {fileID: 1221236083307881758}
-  - {fileID: 6253780169527091367}
-  - {fileID: 8860082875198348089}
+  - {fileID: 2682898042326792108}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &6333430579444087001
@@ -517,7 +493,7 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
---- !u!114 &3379979751015650509
+--- !u!114 &5606590253648036325
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -526,10 +502,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 7211168867102198194}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e7916bcbd7aca5d4ebe55a8777309b9e, type: 3}
+  m_Script: {fileID: 11500000, guid: c38dfef38b487584fa59d20d5e61acf3, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: 
-  lifetime: 20
+  m_EditorClassIdentifier: Assembly-CSharp::Keyhole
+  targets:
+  - {fileID: 0}
+  cursorController: {fileID: 0}
+  stickerSlot: {fileID: 3629573746343590460}
+  magneticRadius: 0.5
 --- !u!1 &7924415650499928146
 GameObject:
   m_ObjectHideFlags: 0
@@ -540,9 +520,8 @@ GameObject:
   m_Component:
   - component: {fileID: 1221236083307881758}
   - component: {fileID: 8131645856802556971}
-  - component: {fileID: 5229929725374849337}
   m_Layer: 8
-  m_Name: Keyhole (2)
+  m_Name: Walls
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -557,11 +536,11 @@ Transform:
   m_GameObject: {fileID: 7924415650499928146}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: -0.85, z: 0}
-  m_LocalScale: {x: 1.25, y: 0.5, z: 1}
+  m_LocalPosition: {x: -0.19239998, y: -0.34364006, z: 0}
+  m_LocalScale: {x: 2.1718752, y: 0.15000002, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 3669304638168191759}
+  m_Father: {fileID: 2682898042326792108}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &8131645856802556971
 SpriteRenderer:
@@ -622,16 +601,3 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
---- !u!114 &5229929725374849337
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7924415650499928146}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e7916bcbd7aca5d4ebe55a8777309b9e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  lifetime: 20

@@ -9,8 +9,8 @@ public class Keyhole : MonoBehaviour
     [Header("Cursor Reference")]
     public CursorController cursorController;
 
-    [Header("Slot Visual")]
-    public float dimAlpha = 0.3f;
+    [Header("Sticker Slot (child Transform marking the hollow center)")]
+    public Transform stickerSlot;
 
     [Header("Magnetic Slowdown")]
     public float magneticRadius = 0.5f;
@@ -18,12 +18,18 @@ public class Keyhole : MonoBehaviour
     private static List<Keyhole> instances = new List<Keyhole>();
 
     private SpriteRenderer slotSr;
+    private Color slotOriginalColor;
     private bool occupied = false;
 
     void Start()
     {
         instances.Add(this);
-        slotSr = GetComponent<SpriteRenderer>();
+        if (stickerSlot != null)
+        {
+            slotSr = stickerSlot.GetComponent<SpriteRenderer>();
+            if (slotSr != null)
+                slotOriginalColor = slotSr.color;
+        }
         UpdateSlot();
     }
 
@@ -53,23 +59,42 @@ public class Keyhole : MonoBehaviour
         UpdateSlot();
     }
 
-    // --- Slot alpha ---
+    // --- Slot visual ---
 
     void UpdateSlot()
     {
         if (slotSr == null) return;
 
-        float alpha;
-        if (occupied)
-            alpha = 0.05f;
-        else if (cursorController != null && cursorController.isCursorMode)
-            alpha = 1f;
-        else
-            alpha = dimAlpha;
+        bool inCursorMode = cursorController != null && cursorController.isCursorMode;
+        bool hovering = inCursorMode && !occupied && IsMouseHovering();
 
-        Color c = slotSr.color;
-        c.a = alpha;
+        Color c = hovering ? Color.green : slotOriginalColor;
+        c.a = 1f;
         slotSr.color = c;
+    }
+
+    public bool IsMouseHovering()
+    {
+        if (Camera.main == null || stickerSlot == null) return false;
+        Vector2 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        return Vector2.Distance(mousePos, stickerSlot.position) < magneticRadius;
+    }
+
+    public static Keyhole GetHoveredKeyhole()
+    {
+        Keyhole closest = null;
+        float closestDist = float.MaxValue;
+        foreach (var kh in instances)
+        {
+            if (kh == null || kh.occupied || !kh.IsMouseHovering()) continue;
+            float d = Vector2.Distance(Camera.main.ScreenToWorldPoint(Input.mousePosition), kh.stickerSlot.position);
+            if (d < closestDist)
+            {
+                closestDist = d;
+                closest = kh;
+            }
+        }
+        return closest;
     }
 
     // --- Magnetic slowdown (called by CameraFollow) ---
@@ -110,6 +135,6 @@ public class Keyhole : MonoBehaviour
     void OnDrawGizmosSelected()
     {
         Gizmos.color = new Color(1f, 1f, 0f, 0.3f);
-        Gizmos.DrawWireSphere(transform.position, magneticRadius);
+        Gizmos.DrawWireSphere(stickerSlot != null ? stickerSlot.position : transform.position, magneticRadius);
     }
 }

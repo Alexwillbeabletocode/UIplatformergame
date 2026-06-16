@@ -31,15 +31,29 @@ public class StickerSpawner : MonoBehaviour
         if (activeStickers >= maxStickers)
             return;
 
-        Vector3 spawnPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        spawnPos.z = 0f;
+        Keyhole targetKeyhole = Keyhole.GetHoveredKeyhole();
+        Vector3 spawnPos;
+        Quaternion spawnRot = Quaternion.identity;
 
-        GameObject sticker = Instantiate(stickerPrefab, spawnPos, Quaternion.identity);
+        if (targetKeyhole != null && targetKeyhole.stickerSlot != null)
+        {
+            spawnPos = targetKeyhole.stickerSlot.position;
+        }
+        else
+        {
+            spawnPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            spawnPos.z = 0f;
+        }
+
+        GameObject sticker = Instantiate(stickerPrefab, spawnPos, spawnRot);
+
         Sticker stickerScript = sticker.GetComponent<Sticker>();
         if (stickerScript != null)
         {
             stickerScript.lifetime = stickerLifetime;
             stickerScript.spawner = this;
+            if (targetKeyhole != null)
+                stickerScript.AssignedKeyhole = targetKeyhole;
         }
 
         activeStickers++;
