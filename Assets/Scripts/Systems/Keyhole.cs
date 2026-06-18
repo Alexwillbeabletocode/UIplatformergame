@@ -97,6 +97,17 @@ public class Keyhole : MonoBehaviour
         return closest;
     }
 
+    public static bool IsWorldPointHovered(Vector2 worldPos)
+    {
+        foreach (var kh in instances)
+        {
+            if (kh == null || kh.occupied || kh.stickerSlot == null) continue;
+            if (Vector2.Distance(worldPos, kh.stickerSlot.position) < kh.magneticRadius)
+                return true;
+        }
+        return false;
+    }
+
     // --- Magnetic slowdown (called by CameraFollow) ---
 
     public static float GetSlowdownFactor(Vector2 worldPos)

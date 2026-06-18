@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3629573746343590460}
   - component: {fileID: 8193159788114170889}
-  m_Layer: 8
+  m_Layer: 7
   m_Name: Keyhole
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -101,7 +101,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6253780169527091367}
   - component: {fileID: 5653655474487913967}
-  m_Layer: 8
+  m_Layer: 7
   m_Name: Walls
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -192,7 +192,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1567478990191706566}
   - component: {fileID: 5740220457511613186}
-  m_Layer: 8
+  m_Layer: 7
   m_Name: Walls
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -283,7 +283,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8860082875198348089}
   - component: {fileID: 6899018740479519108}
-  m_Layer: 8
+  m_Layer: 7
   m_Name: Walls
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -373,7 +373,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2682898042326792108}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Keyholewalls
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -410,7 +410,7 @@ GameObject:
   - component: {fileID: 3669304638168191759}
   - component: {fileID: 6333430579444087001}
   - component: {fileID: 5606590253648036325}
-  m_Layer: 8
+  m_Layer: 7
   m_Name: Keyhole
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -426,7 +426,7 @@ Transform:
   m_GameObject: {fileID: 7211168867102198194}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -6.5, y: 3, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1.7375, y: 0.3, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -509,7 +509,7 @@ MonoBehaviour:
   - {fileID: 0}
   cursorController: {fileID: 0}
   stickerSlot: {fileID: 3629573746343590460}
-  magneticRadius: 0.5
+  magneticRadius: 1
 --- !u!1 &7924415650499928146
 GameObject:
   m_ObjectHideFlags: 0
@@ -520,7 +520,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1221236083307881758}
   - component: {fileID: 8131645856802556971}
-  m_Layer: 8
+  m_Layer: 7
   m_Name: Walls
   m_TagString: Untagged
   m_Icon: {fileID: 0}
