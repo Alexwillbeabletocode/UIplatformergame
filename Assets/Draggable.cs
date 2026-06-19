@@ -1,6 +1,6 @@
 using UnityEngine;
 
-[RequireComponent(typeof(Collider2D))]
+[RequireComponent(typeof(BoxCollider2D))]
 [RequireComponent(typeof(SpriteRenderer))]
 [RequireComponent(typeof(Rigidbody2D))]
 public class Draggable : MonoBehaviour
@@ -22,10 +22,13 @@ public class Draggable : MonoBehaviour
     [Tooltip("Child transform whose Y scale goes from 0 to 100% as platform moves. Set its sprite pivot to bottom-center so it grows upward.")]
     public Transform progressBar;
 
+    [Header("Stretch Visual")]
+    public bool enableStretchVisual = false;
+
     private Vector3 startPosition;
     private Vector3 barBaseScale;
     private SpriteRenderer sr;
-    private Collider2D col;
+    private BoxCollider2D boxCol;
     private Rigidbody2D rb;
 
     private enum LiftState { Idle, Lifting, Pausing, Returning }
@@ -35,6 +38,12 @@ public class Draggable : MonoBehaviour
     private Transform playerTransform;
     private Rigidbody2D playerRb;
     private Collider2D playerCol;
+
+    private float naturalWidth;
+    private float naturalHeight;
+    private Vector2 originalColOffset;
+    private Vector2 originalColSize;
+    private float currentTravel = 0f;
 
     private Vector2 MoveVector
     {
@@ -48,7 +57,7 @@ public class Draggable : MonoBehaviour
     void Start()
     {
         sr = GetComponent<SpriteRenderer>();
-        col = GetComponent<Collider2D>();
+        boxCol = GetComponent<BoxCollider2D>();
         rb = GetComponent<Rigidbody2D>();
         rb.bodyType = RigidbodyType2D.Kinematic;
         rb.gravityScale = 0f;
@@ -61,6 +70,16 @@ public class Draggable : MonoBehaviour
             SpriteRenderer barSr = progressBar.GetComponent<SpriteRenderer>();
             if (barSr != null)
                 barSr.sortingOrder = sr.sortingOrder + 1;
+        }
+
+        if (enableStretchVisual && sr.sprite != null)
+        {
+            naturalWidth = sr.bounds.size.x;
+            naturalHeight = sr.bounds.size.y;
+            originalColOffset = boxCol.offset;
+            originalColSize = boxCol.size;
+            sr.drawMode = SpriteDrawMode.Sliced;
+            sr.size = new Vector2(naturalWidth, naturalHeight);
         }
 
         UpdateProgressBar();
@@ -112,9 +131,20 @@ public class Draggable : MonoBehaviour
                 }
 
                 float step = Mathf.Min(moveSpeed * Time.fixedDeltaTime, remaining);
-                delta = MoveVector * step;
-                rb.MovePosition(rb.position + delta);
-                UpdateProgressBar();
+
+                if (enableStretchVisual)
+                {
+                    currentTravel += step;
+                    delta = MoveVector * step;
+                    UpdateProgressBar();
+                    UpdateStretchVisual();
+                }
+                else
+                {
+                    delta = MoveVector * step;
+                    rb.MovePosition(rb.position + delta);
+                    UpdateProgressBar();
+                }
                 break;
 
             case LiftState.Pausing:
@@ -124,19 +154,37 @@ public class Draggable : MonoBehaviour
                 break;
 
             case LiftState.Returning:
-                Vector2 targetPos = Vector2.MoveTowards(rb.position, startPosition, returnSpeed * Time.fixedDeltaTime);
-                delta = targetPos - rb.position;
-                rb.MovePosition(targetPos);
-                UpdateProgressBar();
-                if (Vector2.Distance(targetPos, startPosition) < 0.01f)
+                if (enableStretchVisual)
                 {
-                    state = LiftState.Idle;
+                    float stepBack = returnSpeed * Time.fixedDeltaTime;
+                    float prev = currentTravel;
+                    currentTravel = Mathf.Max(0f, currentTravel - stepBack);
+                    delta = MoveVector * (currentTravel - prev);
                     UpdateProgressBar();
+                    UpdateStretchVisual();
+                    if (currentTravel <= 0.01f)
+                    {
+                        state = LiftState.Idle;
+                        UpdateProgressBar();
+                        UpdateStretchVisual();
+                    }
+                }
+                else
+                {
+                    Vector2 targetPos = Vector2.MoveTowards(rb.position, startPosition, returnSpeed * Time.fixedDeltaTime);
+                    delta = targetPos - rb.position;
+                    rb.MovePosition(targetPos);
+                    UpdateProgressBar();
+                    if (Vector2.Distance(targetPos, startPosition) < 0.01f)
+                    {
+                        state = LiftState.Idle;
+                        UpdateProgressBar();
+                    }
                 }
                 break;
         }
 
-        if (delta.magnitude > 0.0001f && moveAxis == MoveAxis.X)
+        if (delta.magnitude > 0.0001f && (enableStretchVisual || moveAxis == MoveAxis.X))
             CarryPlayer(delta);
     }
 
@@ -144,6 +192,9 @@ public class Draggable : MonoBehaviour
     {
         get
         {
+            if (enableStretchVisual)
+                return currentTravel;
+
             float raw = moveAxis == MoveAxis.X
                 ? transform.position.x - startPosition.x
                 : transform.position.y - startPosition.y;
@@ -162,6 +213,34 @@ public class Draggable : MonoBehaviour
         progressBar.localScale = scale;
     }
 
+    void UpdateStretchVisual()
+    {
+        if (!enableStretchVisual) return;
+
+        float travel = currentTravel;
+        if (travel > 0.01f)
+        {
+            if (moveAxis == MoveAxis.Y)
+            {
+                sr.size = new Vector2(naturalWidth, naturalHeight + travel);
+                boxCol.offset = new Vector2(originalColOffset.x, originalColOffset.y + travel / 2f);
+                boxCol.size = new Vector2(originalColSize.x, originalColSize.y + travel);
+            }
+            else
+            {
+                sr.size = new Vector2(naturalWidth + travel, naturalHeight);
+                boxCol.offset = new Vector2(originalColOffset.x + travel / 2f, originalColOffset.y);
+                boxCol.size = new Vector2(originalColSize.x + travel, originalColSize.y);
+            }
+        }
+        else
+        {
+            sr.size = new Vector2(naturalWidth, naturalHeight);
+            boxCol.offset = originalColOffset;
+            boxCol.size = originalColSize;
+        }
+    }
+
     void CarryPlayer(Vector2 delta)
     {
         if (delta.magnitude < 0.0001f) return;
@@ -175,15 +254,14 @@ public class Draggable : MonoBehaviour
             playerCol = pm.GetComponent<Collider2D>();
         }
 
-        if (playerCol == null || col == null) return;
+        if (playerCol == null || boxCol == null) return;
 
-        bool touching = playerCol.IsTouching(col);
+        bool touching = playerCol.IsTouching(boxCol);
 
-        // Fallback: bounds proximity check (catches cases where contact isn't established yet)
         if (!touching)
         {
             Bounds pb = playerCol.bounds;
-            Bounds plb = col.bounds;
+            Bounds plb = boxCol.bounds;
             bool vertical = pb.min.y <= plb.max.y + 0.1f && pb.min.y >= plb.min.y;
             bool horizontal = pb.max.x > plb.min.x && pb.min.x < plb.max.x;
             touching = vertical && horizontal;
