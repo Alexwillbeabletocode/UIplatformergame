@@ -5,13 +5,11 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody2D))]
 public class Draggable : MonoBehaviour
 {
-    public enum MoveAxis { X, Y }
     public enum MoveDirection { Positive, Negative }
 
     public CursorController cursorController;
 
     [Header("Movement")]
-    public MoveAxis moveAxis = MoveAxis.Y;
     public MoveDirection moveDirection = MoveDirection.Positive;
     public float maxTravelDistance = 5f;
     public float moveSpeed = 3f;
@@ -19,7 +17,7 @@ public class Draggable : MonoBehaviour
     public float pauseDuration = 1f;
 
     [Header("Progress Bar")]
-    [Tooltip("Child transform whose Y scale goes from 0 to 100% as platform moves. Set its sprite pivot to bottom-center so it grows upward.")]
+    [Tooltip("Child transform whose Y scale goes from 0 to 100% as platform moves. Set sprite pivot to bottom-center so it grows upward.")]
     public Transform progressBar;
 
     [Header("Stretch Visual")]
@@ -47,11 +45,7 @@ public class Draggable : MonoBehaviour
 
     private Vector2 MoveVector
     {
-        get
-        {
-            Vector2 dir = moveAxis == MoveAxis.X ? Vector2.right : Vector2.up;
-            return moveDirection == MoveDirection.Positive ? dir : -dir;
-        }
+        get { return moveDirection == MoveDirection.Positive ? Vector2.up : Vector2.down; }
     }
 
     void Start()
@@ -184,7 +178,7 @@ public class Draggable : MonoBehaviour
                 break;
         }
 
-        if (delta.magnitude > 0.0001f && (enableStretchVisual || moveAxis == MoveAxis.X))
+        if (enableStretchVisual && delta.magnitude > 0.0001f)
             CarryPlayer(delta);
     }
 
@@ -195,9 +189,7 @@ public class Draggable : MonoBehaviour
             if (enableStretchVisual)
                 return currentTravel;
 
-            float raw = moveAxis == MoveAxis.X
-                ? transform.position.x - startPosition.x
-                : transform.position.y - startPosition.y;
+            float raw = transform.position.y - startPosition.y;
             return moveDirection == MoveDirection.Positive ? raw : -raw;
         }
     }
@@ -220,18 +212,9 @@ public class Draggable : MonoBehaviour
         float travel = currentTravel;
         if (travel > 0.01f)
         {
-            if (moveAxis == MoveAxis.Y)
-            {
-                sr.size = new Vector2(naturalWidth, naturalHeight + travel);
-                boxCol.offset = new Vector2(originalColOffset.x, originalColOffset.y + travel / 2f);
-                boxCol.size = new Vector2(originalColSize.x, originalColSize.y + travel);
-            }
-            else
-            {
-                sr.size = new Vector2(naturalWidth + travel, naturalHeight);
-                boxCol.offset = new Vector2(originalColOffset.x + travel / 2f, originalColOffset.y);
-                boxCol.size = new Vector2(originalColSize.x + travel, originalColSize.y);
-            }
+            sr.size = new Vector2(naturalWidth, naturalHeight + travel);
+            boxCol.offset = new Vector2(originalColOffset.x, originalColOffset.y + travel / 2f);
+            boxCol.size = new Vector2(originalColSize.x, originalColSize.y + travel);
         }
         else
         {
